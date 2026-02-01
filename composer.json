@@ -1,0 +1,53 @@
+{
+    "name": "phpsoftbox/config",
+    "description": "Config component for the PhpSoftBox framework",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anton K.",
+            "email": "inspector-who@mail.ru"
+        }
+    ],
+    "config": {
+        "sort-packages": true
+    },
+    "require": {
+        "php": "^8.4",
+        "phpsoftbox/collection": "dev-master",
+        "phpsoftbox/storage": "dev-master",
+        "psr/simple-cache": "^3.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.93",
+        "phpsoftbox/cache": "dev-master",
+        "phpsoftbox/cli-app": "dev-master",
+        "phpsoftbox/cs-fixer": "^1.1.0",
+        "phpsoftbox/encryptor": "dev-master",
+        "phpunit/phpunit": "^11.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "PhpSoftBox\\Config\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PhpSoftBox\\Tests\\Config\\": "tests/"
+        }
+    },
+    "extra": {
+        "psb": {
+            "providers": [
+                "PhpSoftBox\\Config\\Cli\\ConfigCommandProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "cs:fix": "vendor/bin/psb-cs-fixer fix",
+        "cs:check": "vendor/bin/psb-cs-fixer check --diff"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
