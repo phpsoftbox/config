@@ -10,8 +10,6 @@ use PhpSoftBox\CliApp\Runner\RunnerInterface;
 use PhpSoftBox\Config\ConfigFactory;
 use Psr\SimpleCache\CacheInterface;
 
-use function is_string;
-
 final readonly class ClearConfigCacheHandler implements HandlerInterface
 {
     public function __construct(
@@ -27,14 +25,8 @@ final readonly class ClearConfigCacheHandler implements HandlerInterface
             return Response::FAILURE;
         }
 
-        $env = $runner->request()->option('environment');
-        if (!is_string($env) || $env === '') {
-            $runner->io()->writeln('Не указано окружение для очистки кеша config.', 'error');
-
-            return Response::FAILURE;
-        }
-
-        $key = ConfigFactory::cacheKeyForEnvironment($env);
+        // Окружение приложения (или --environment): тот же ключ, под которым ConfigFactory сохранил кеш.
+        $key = ConfigFactory::cacheKeyForEnvironment($runner->environment());
 
         if ($this->cache->delete($key)) {
             $runner->io()->writeln('Кеш config очищен (' . $key . ').', 'success');

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace PhpSoftBox\Config\Provider;
 
+use PhpSoftBox\Collection\Collection;
+
 use function array_key_exists;
-use function array_replace_recursive;
 use function count;
 use function glob;
 use function is_array;
@@ -42,7 +43,8 @@ final class PhpFileDataProvider extends AbstractDataProvider
                 }
                 $data = $key !== '' ? [$key => $data] : $data;
             }
-            $merged = array_replace_recursive($merged, $data);
+            // Слияние как у слоёв Config: списки не сливаются по индексу.
+            $merged = Collection::from($merged)->merge($data, ['recursive' => true])->all();
         }
 
         return $merged;

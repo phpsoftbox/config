@@ -59,8 +59,6 @@ final class ConfigEncryptHandler implements HandlerInterface
             return $key;
         }
 
-        $envKey = $_ENV['APP_KEY'] ?? $_SERVER['APP_KEY'] ?? '';
-
-        return is_string($envKey) ? $envKey : '';
+        return AppKeyResolver::resolve();
     }
 }

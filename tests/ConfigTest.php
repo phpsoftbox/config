@@ -153,4 +153,21 @@ final class ConfigTest extends TestCase
         $cfg->set('pushr.app_id', 'app-fail');
     }
 
+    /**
+     * Проверим, что all() расшифровывает значения, как get(), а raw() отдаёт их как есть.
+     *
+     * @see Config::all()
+     * @see Config::raw()
+     */
+    #[Test]
+    public function allResolvesEncryptedValuesAndRawDoesNot(): void
+    {
+        $key       = 'config-test-key-0123456789abcdef0123456';
+        $encryptor = new Encryptor(defaultKey: $key);
+
+        $config = new Config([['secret' => new EncryptedValue($encryptor->encrypt('payload', $key))]], encryptedValueResolver: $encryptor);
+
+        self::assertSame(['secret' => 'payload'], $config->all());
+        self::assertInstanceOf(EncryptedValue::class, $config->raw()['secret']);
+    }
 }

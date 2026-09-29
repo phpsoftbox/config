@@ -48,5 +48,8 @@
         "cs:check": "vendor/bin/psb-cs-fixer check --diff"
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "suggest": {
+        "phpsoftbox/env": "Чтение APP_KEY из .env в командах config:encrypt/config:decrypt"
+    }
 }

@@ -2,7 +2,9 @@
 
 `ConfigFactory` собирает конфигурацию из каталога `config/` по слоям:
 
-1. `config/*.php` (кроме `container.php`)
+1. `config/*.php`, кроме файлов скелета (`ConfigFactory::SKELETON_FILES`: `app.php`, `bootstrap.php`, `cli-app.php`,
+   `cli.bootstrap.php`, `container.php`, `cs-fixer.php`, `dependencies.php`, `middleware.php`) — они не возвращают
+   конфигурацию и исполнять их нельзя
 2. `config/{env}/*.php`
 3. `config/local/*.php`
 4. extra-файлы из списка

@@ -10,6 +10,8 @@ use PhpSoftBox\Cache\Driver\ArrayDriver;
 use PhpSoftBox\Cache\Psr16\SimpleCache;
 use PhpSoftBox\Config\Config;
 use PhpSoftBox\Config\ConfigFactory;
+use PhpSoftBox\Encryptor\EncryptedValue;
+use PhpSoftBox\Encryptor\Encryptor;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Test;
@@ -43,7 +45,7 @@ final class ConfigFactoryTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new ConfigFactory(environment: '   ');
+        new ConfigFactory(environment: '   ', baseDir: sys_get_temp_dir());
     }
 
     /**
@@ -278,7 +280,7 @@ final class ConfigFactoryTest extends TestCase
         $cached = $cache->get($key);
 
         $this->assertIsArray($cached);
-        $this->assertSame($config->all(), $cached);
+        $this->assertSame($config->raw(), $cached);
 
         $this->cleanup($base);
     }
@@ -327,6 +329,55 @@ final class ConfigFactoryTest extends TestCase
 
         self::assertSame('prod', $config->get('app.env'));
         self::assertFalse($config->get('app.debug'));
+
+        $this->cleanup($base);
+    }
+
+    /**
+     * Проверим, что файлы скелета в config/ (bootstrap, middleware и т. п.) не исполняются как конфигурация.
+     *
+     * @see ConfigFactory::create()
+     */
+    #[Test]
+    public function createSkipsSkeletonFiles(): void
+    {
+        $base = $this->makeTempConfigBase();
+        $this->putPhpArray($base . '/config/app.php', ['name' => 'demo']);
+        $this->putPhpRaw($base . '/config/bootstrap.php', "throw new RuntimeException('bootstrap must not run');");
+        $this->putPhpRaw($base . '/config/middleware.php', "throw new RuntimeException('middleware must not run');");
+        $this->putPhpArray($base . '/config/mail.php', ['host' => 'smtp.local']);
+
+        $config = new ConfigFactory(environment: 'dev', baseDir: $base)->create();
+
+        self::assertSame('smtp.local', $config->get('mail.host'));
+        self::assertFalse($config->has('app.name'));
+
+        $this->cleanup($base);
+    }
+
+    /**
+     * Проверим, что в кеш попадают зашифрованные значения, а не расшифрованные секреты.
+     *
+     * @see ConfigFactory::create()
+     * @see Config::raw()
+     */
+    #[Test]
+    public function cacheStoresEncryptedValues(): void
+    {
+        $base      = $this->makeTempConfigBase();
+        $key       = 'config-test-key-0123456789abcdef0123456';
+        $encryptor = new Encryptor(defaultKey: $key);
+
+        $this->putPhpRaw(
+            $base . '/config/db.php',
+            'return ["password" => new ' . EncryptedValue::class . '(' . var_export($encryptor->encrypt('s3cret', $key), true) . ')];',
+        );
+        $cache = new SimpleCache(new ArrayDriver());
+
+        $config = new ConfigFactory(environment: 'dev', baseDir: $base, encryptedValueResolver: $encryptor, cache: $cache)->create();
+
+        self::assertSame('s3cret', $config->get('db.password'));
+        self::assertInstanceOf(EncryptedValue::class, $cache->get(ConfigFactory::cacheKeyForEnvironment('dev'))['db']['password']);
 
         $this->cleanup($base);
     }
