@@ -55,10 +55,10 @@ final class ConfigTest extends TestCase
 
         $encryptor = new Encryptor(
             registry: new DriverRegistry([new OpenSslDriver()]),
-            defaultKey: 'secret-key',
+            defaultKey: 'config-test-key-0123456789abcdef0123456',
         );
 
-        $ciphertext = $encryptor->encrypt('payload', 'secret-key');
+        $ciphertext = $encryptor->encrypt('payload', 'config-test-key-0123456789abcdef0123456');
 
         $cfg = new Config(
             [
@@ -82,10 +82,10 @@ final class ConfigTest extends TestCase
 
         $encryptor = new Encryptor(
             registry: new DriverRegistry([new OpenSslDriver()]),
-            defaultKey: 'secret-key',
+            defaultKey: 'config-test-key-0123456789abcdef0123456',
         );
 
-        $ciphertext = $encryptor->encrypt('payload', 'secret-key');
+        $ciphertext = $encryptor->encrypt('payload', 'config-test-key-0123456789abcdef0123456');
 
         $cfg = new Config(
             [
