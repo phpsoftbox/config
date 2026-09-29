@@ -14,15 +14,15 @@
     },
     "require": {
         "php": "^8.5",
-        "phpsoftbox/collection": "dev-master",
-        "phpsoftbox/storage": "dev-master",
+        "phpsoftbox/collection": "^1.0",
+        "phpsoftbox/storage": "^1.0",
         "psr/simple-cache": "^3.0"
     },
     "require-dev": {
-        "phpsoftbox/cache": "dev-master",
-        "phpsoftbox/cli-app": "dev-master",
-        "phpsoftbox/cs-fixer": "^1.2.1",
-        "phpsoftbox/encryptor": "dev-master",
+        "phpsoftbox/cache": "^1.0",
+        "phpsoftbox/cli-app": "^1.0",
+        "phpsoftbox/cs-fixer": "^1.2.2",
+        "phpsoftbox/encryptor": "^1.0",
         "phpunit/phpunit": "^13.3"
     },
     "autoload": {
@@ -47,7 +47,6 @@
         "cs:fix": "vendor/bin/psb-cs-fixer fix",
         "cs:check": "vendor/bin/psb-cs-fixer check --diff"
     },
-    "minimum-stability": "dev",
     "prefer-stable": true,
     "suggest": {
         "phpsoftbox/env": "Чтение APP_KEY из .env в командах config:encrypt/config:decrypt"
