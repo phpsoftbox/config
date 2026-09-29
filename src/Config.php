@@ -52,10 +52,10 @@ final class Config implements ArrayAccess, ConfigMutableInterface
 
         foreach ($sources as $src) {
             if ($src instanceof self) {
-                $src = $src->all();
+                $src = $src->raw();
             } elseif (is_callable($src)) {
                 $resolved = $src();
-                $src      = $resolved instanceof self ? $resolved->all() : (array) $resolved;
+                $src      = $resolved instanceof self ? $resolved->raw() : (array) $resolved;
             }
             $result = $result->merge((array) $src, $mergeOptions + ['recursive' => true]);
         }
@@ -63,7 +63,22 @@ final class Config implements ArrayAccess, ConfigMutableInterface
         return $result;
     }
 
+    /**
+     * Все значения, `EncryptedValue` расшифрованы — как у get().
+     *
+     * @return array<string, mixed>
+     */
     public function all(): array
+    {
+        return $this->resolveEncryptedValues($this->data->all());
+    }
+
+    /**
+     * Все значения как есть, `EncryptedValue` не расшифрованы: для кеша, чтобы секреты не попадали в него открытыми.
+     *
+     * @return array<string, mixed>
+     */
+    public function raw(): array
     {
         return $this->data->all();
     }

@@ -13,10 +13,10 @@ use function array_key_exists;
 use function array_map;
 use function basename;
 use function count;
-use function dirname;
 use function explode;
 use function getenv;
 use function glob;
+use function in_array;
 use function is_array;
 use function is_dir;
 use function is_file;
@@ -25,13 +25,28 @@ use function trim;
 
 use const PATHINFO_FILENAME;
 
+/**
+ * Сборка конфигурации из провайдеров или каталога `config/`.
+ *
+ * `baseDir` — корень проекта, обязателен. Без провайдеров читаются `config/*.php` (кроме файлов из
+ * {@see self::SKELETON_FILES} — они не возвращают конфигурацию и исполнять их нельзя), `config/{env}/*.php`,
+ * `config/local.php` и `config/local/*.php`.
+ */
 final readonly class ConfigFactory
 {
     public const string CACHE_KEY_PREFIX = 'config.configs';
 
+    /**
+     * Файлы скелета в `config/`, которые не являются конфигурацией.
+     */
+    public const array SKELETON_FILES = [
+        'app.php', 'bootstrap.php', 'cli-app.php', 'cli.bootstrap.php', 'container.php', 'cs-fixer.php',
+        'dependencies.php', 'middleware.php',
+    ];
+
     public function __construct(
         private string $environment,
-        private ?string $baseDir = null,
+        private string $baseDir,
         private ?string $extra = null,
         private ?EncryptedValueResolverInterface $encryptedValueResolver = null,
         private ?CacheInterface $cache = null,
@@ -45,7 +60,7 @@ final readonly class ConfigFactory
 
     public function create(): Config
     {
-        $baseDir = $this->baseDir ?? dirname(__DIR__, 2);
+        $baseDir = $this->baseDir;
         $env     = $this->environment;
         $extras  = $this->extra ?? (string) (getenv('PSB_CONFIG_EXTRA') ?: '');
 
@@ -88,7 +103,7 @@ final readonly class ConfigFactory
         if ($this->cache !== null) {
             $this->cache->set(
                 self::cacheKeyForEnvironment($this->environment),
-                $config->all(),
+                $config->raw(),
                 $this->cacheTtl,
             );
         }
@@ -101,7 +116,7 @@ final readonly class ConfigFactory
      */
     public function getMergedConfig(): array
     {
-        return $this->create()->all();
+        return $this->create()->raw();
     }
 
     /**
@@ -112,9 +127,9 @@ final readonly class ConfigFactory
         $cfgDir = $baseDir . '/config';
         $layers = [];
 
-        // 1) base: all config/*.php except container.php
+        // 1) base: config/*.php, кроме файлов скелета
         foreach (glob($cfgDir . '/*.php') ?: [] as $file) {
-            if (basename($file) === 'container.php') {
+            if (in_array(basename($file), self::SKELETON_FILES, true)) {
                 continue;
             }
             $data = require $file;

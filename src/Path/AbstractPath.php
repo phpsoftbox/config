@@ -6,12 +6,16 @@ namespace PhpSoftBox\Config\Path;
 
 use PhpSoftBox\Storage\FileHelper;
 
-use function basename;
 use function implode;
 use function rtrim;
-use function str_contains;
 use function trim;
 
+/**
+ * Пути проекта относительно базового каталога.
+ *
+ * Геттеры только собирают путь и ничего не создают (на read-only FS они не падают). Каталог, в который будут писать,
+ * создаётся явно — {@see self::ensureDirectory()}.
+ */
 abstract class AbstractPath implements PathInterface
 {
     public function __construct(
@@ -29,6 +33,16 @@ abstract class AbstractPath implements PathInterface
         return $this->path($relatedPath);
     }
 
+    /**
+     * Создаёт каталог (с родителями), если его нет, и возвращает путь.
+     */
+    public function ensureDirectory(string $path): string
+    {
+        FileHelper::ensureDirectory($path);
+
+        return $path;
+    }
+
     protected function path(string ...$parts): string
     {
         $segments = [rtrim($this->baseDir, '/')];
@@ -41,16 +55,6 @@ abstract class AbstractPath implements PathInterface
             $segments[] = $part;
         }
 
-        $path = implode('/', $segments);
-
-        $baseName = basename($path);
-
-        if (str_contains($baseName, '.') || $baseName === 'hot') {
-            FileHelper::ensureDirectoryForFile($path);
-        } else {
-            FileHelper::ensureDirectory($path);
-        }
-
-        return $path;
+        return implode('/', $segments);
     }
 }

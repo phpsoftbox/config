@@ -32,8 +32,10 @@ debug предоставляет компонент `phpsoftbox/application` ч�
 слоя и формирования cache key:
 
 ```php
-$config = new ConfigFactory(environment: 'dev')->create();
+$config = new ConfigFactory(environment: 'dev', baseDir: __DIR__ . '/..')->create();
 ```
+
+`baseDir` — корень проекта, обязателен (раньше по умолчанию указывал в `vendor/`).
 
 Произвольные ключи `app.env` и `app.debug` не имеют специальной семантики.
 
@@ -54,4 +56,13 @@ php psb config:encrypt "secret" --cipherKey="your-key"
 php psb config:decrypt "ciphertext" --cipherKey="your-key"
 ```
 
-Если `--cipherKey` не указан, используется `APP_KEY` из окружения.
+Если `--cipherKey` не указан, используется `APP_KEY`: из `.env` (если установлен `phpsoftbox/env`), затем из
+окружения процесса.
+
+`config:cache:clear` очищает кеш окружения приложения (как у `RunnerInterface::environment()` из `phpsoftbox/cli-app`),
+а с `--environment` — указанного.
+
+## Пути
+
+`AbstractPath` собирает пути относительно корня проекта и ничего не создаёт: геттеры и `createPath()` работают и на
+read-only FS. Каталог, в который будут писать, создаётся явно — `ensureDirectory($path)`.
